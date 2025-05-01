@@ -33,5 +33,7 @@ public class UserEntity {
 	@Lob
 	@NonNull
 	private byte[] profileImage;
+	@NonNull
+	private Long phoneNumber;
 
 }

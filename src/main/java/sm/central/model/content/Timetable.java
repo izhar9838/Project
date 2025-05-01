@@ -1,4 +1,4 @@
-package sm.central.model.timetable;
+package sm.central.model.content;
 
 import jakarta.persistence.*;
 import lombok.Data;

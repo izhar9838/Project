@@ -4,11 +4,18 @@ package sm.central.userService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.NonNull;
 import sm.central.dto.EmailRequestDto;
 import sm.central.dto.OtpDto;
 import sm.central.dto.ResetPasswordDto;
+import sm.central.model.staff.Teacher;
+import sm.central.model.staff.Teacher_User_Pass;
+import sm.central.model.student.Student;
+import sm.central.model.student.StudentUserPassword;
 import sm.central.repository.OtpRepository;
 import sm.central.repository.UserRepository;
+import sm.central.repository.staff.ITeacherRepo;
+import sm.central.repository.student.IStudentRepo;
 import sm.central.security.model.OtpEntity;
 import sm.central.security.model.UserEntity;
 import sm.central.util.EmailService;
@@ -20,7 +27,10 @@ public class ForgotPasswordService {
  
  @Autowired
  private UserRepository userRepository;
- 
+ @Autowired
+ private  IStudentRepo stuRepo;
+ @Autowired
+ private ITeacherRepo teaRepo;
  @Autowired
  private OtpRepository otpRepository;
  
@@ -106,11 +116,39 @@ private EmailService emailService;
          throw new RuntimeException("Invalid OTP");
      }
      
-     // Update password and delete OTP
-     user.setPassword(request.getNewPassword());
-     userRepository.save(user);
-     otpRepository.delete(otpEntity);
+
+	String username = user.getUsername();
+
+	String role = user.getRole();
+	if (role.equals("admin")) {
+		 user.setPassword(request.getNewPassword());
+	     userRepository.save(user);
+	     otpRepository.delete(otpEntity);
+	     return "Password reset successfully";
+	}
+	else if(role.equals("teacher")) {
+		Teacher existTeacher = teaRepo.findByUsernameWithDetails(username).get();
+		Teacher_User_Pass teacher_user_pass = existTeacher.getTeacher_user_pass();
+		existTeacher.getTeacher_user_pass().setTeacher(existTeacher);
+		teacher_user_pass.setPassword(request.getNewPassword());
+		teaRepo.save(existTeacher);
+		userRepository.save(user);
+	    otpRepository.delete(otpEntity);
+	    return "Password reset successfully";
+	}
+	else if (role.equals("student")) {
+		Student existStudent = stuRepo.findByUsernameWithDetails(username).get();
+		StudentUserPassword userPass = existStudent.getUserPass();
+		existStudent.getUserPass().setStudent(existStudent);
+		userPass.setPassword(request.getNewPassword());
+		stuRepo.save(existStudent);
+		userRepository.save(user);
+	    otpRepository.delete(otpEntity);
+	    return "Password reset successfully";
+		
+	}
+    
      
-     return "Password reset successfully";
+     throw new RuntimeException("Some Server Error Occured");
  }
 }

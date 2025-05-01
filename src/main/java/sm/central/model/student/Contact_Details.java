@@ -11,19 +11,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
-import lombok.Data;
+
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Data
 @Setter
+@Getter
+
 @ToString(exclude = "student")
 public class Contact_Details implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String address;
 	private Long phoneNumber;

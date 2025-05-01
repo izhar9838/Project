@@ -17,7 +17,7 @@ import lombok.Data;
 @Data
 public class Teacher_User_Pass {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer userpassId;
 	@Column(unique = true)
 	private String username;
@@ -26,6 +26,7 @@ public class Teacher_User_Pass {
 	private String email;
 	@Lob
 	private byte [] porfileImage;
+	private Long phoneNumber;
 	@OneToOne
 	@JoinColumn(name = "teacher_id")
 	@JsonBackReference

@@ -15,11 +15,11 @@ import lombok.Data;
 @Data
 public class Teacher_Professional_Details {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer professionalId;
 	private String position;//teacher headmaster ,principle
 	private String status;//part time ,full time
-	private String quailification;
+	private String qualification;
 	private String specialization;
 	private Integer experience;
 	private Integer classTeacher;

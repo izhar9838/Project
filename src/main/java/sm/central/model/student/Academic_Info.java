@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString(exclude = "student")
 public class Academic_Info {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private Integer rollNo;
 	private String standard;

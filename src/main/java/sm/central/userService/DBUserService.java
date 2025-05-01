@@ -32,7 +32,7 @@ public class DBUserService {
 
         // Using existsByUsername
         if (!userRepository.existsByUsername("admin")) {
-            UserEntity entity = new UserEntity("admin", "admin", "admin", "i4izharali9838@gmail.com", byteArray);
+            UserEntity entity = new UserEntity("admin", "admin", "admin", "i4izharali9838@gmail.com", byteArray,9838909249l);
             userRepository.save(entity);
             System.out.println("Created admin user");
         }

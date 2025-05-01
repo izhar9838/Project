@@ -1,6 +1,9 @@
 package sm.central.model.student;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CurrentTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -21,11 +24,13 @@ public class Fees_Details implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private Long amount;
 	private String [] fee_type;
 	private String payment_mode;
+	@CurrentTimestamp
+	private LocalDateTime feeSubmitTime;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "student_id")
 	@JsonIgnore

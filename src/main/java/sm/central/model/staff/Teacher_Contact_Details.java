@@ -15,7 +15,7 @@ import lombok.Data;
 @Data
 public class Teacher_Contact_Details {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer contactId;
 	private String address;
 	private String email;

@@ -1,6 +1,8 @@
 package sm.central.restcontroller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,15 +16,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import sm.central.dto.FeesDetailsDTO;
 import sm.central.model.classes.Class;
-import sm.central.model.hallofFame.HallOfFameEntity;
+
+import sm.central.model.content.Announcement;
+import sm.central.model.content.HallOfFameEntity;
+import sm.central.model.content.Timetable;
 import sm.central.model.staff.Teacher;
 import sm.central.model.student.Fees_Details;
 import sm.central.model.student.Student;
-import sm.central.model.timetable.Timetable;
+import sm.central.security.model.UserEntity;
 import sm.central.service.admin.IAdminService;
 
-import sm.central.service.user.IUserService;
+
 
 
 
@@ -46,15 +52,9 @@ public class AdminController {
 		return new ResponseEntity<String>(msg,HttpStatus.CREATED);
 	}
 	@PostMapping(path = "/feesSubmission",consumes = "application/json")
-	public ResponseEntity<?> feesSubmission(@RequestBody Fees_Details fees_Details){
-		Fees_Details feeEntity=null;
-		try {
-			 feeEntity = adminService.feesSubmission(fees_Details);
-		} catch (Exception e) {
-			// TODO: handle exception
-			throw new RuntimeException("Some Error Occured");
-		}
-		return new ResponseEntity<>(feeEntity,HttpStatus.CREATED);
+	public ResponseEntity<?> feesSubmission(@RequestBody FeesDetailsDTO feeDto){
+		Fees_Details feesSubmission = adminService.feesSubmission(feeDto);
+		return new ResponseEntity<>(feesSubmission,HttpStatus.OK);
 	}
 	@PostMapping(path = "/enrollTeacher",consumes = "application/json")
 	public ResponseEntity<?> enrollTeacher(@RequestBody Teacher teacher){
@@ -83,6 +83,27 @@ public class AdminController {
     	String ofFame = adminService.saveHallOfFame(hallofFame);
     	
     	return new ResponseEntity<String>(ofFame,HttpStatus.OK);
+    }
+    @PostMapping(path = "/add-admin",consumes = "application/json")
+    public ResponseEntity<?> addAdmin(@RequestBody UserEntity useEntity){
+    	String msg = adminService.addAdmin(useEntity);
+    	return new ResponseEntity<>(msg,HttpStatus.OK);
+    }
+    @PostMapping("/check-username")
+    public ResponseEntity<Map<String, Object>> checkUsername(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        boolean exists = adminService.checkUsernameExists(username);
+        Map<String, Object> response = new HashMap<>();
+        response.put("exists", exists);
+        response.put("message", exists ? "Username already exists" : "Username is available");
+
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping(path = "/createAnnoucement",consumes = "application/json")
+    public ResponseEntity<?> createAnnoucement(@RequestBody Announcement annoucement){
+    	Announcement announcement1 = adminService.createAnnouncement(annoucement);
+    	String msg="Announcement Create for"+announcement1.getTitle();
+    	return new ResponseEntity<>(msg,HttpStatus.CREATED);
     }
     
 }

@@ -40,10 +40,10 @@ public class SecurityConfig {
                .csrf(cust -> cust.disable())
 
                .authorizeHttpRequests(req -> req.
-                       requestMatchers("api/public/*").permitAll()
-                       .requestMatchers("/api/student/*").hasRole("student")
-                       .requestMatchers("/api/teacher/*").hasRole("teacher")
-                       .requestMatchers("/api/admin/*").hasRole("admin")
+                       requestMatchers("api/public/**").permitAll()
+                       .requestMatchers("/api/student/**").hasRole("student")
+                       .requestMatchers("/api/teacher/**").hasRole("teacher")
+                       .requestMatchers("/api/admin/**").hasRole("admin")
                        .anyRequest().authenticated()).
                sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                .addFilterBefore(roleFilter, UsernamePasswordAuthenticationFilter.class)

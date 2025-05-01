@@ -1,4 +1,4 @@
-package sm.central.model.hallofFame;
+package sm.central.model.content;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,12 +13,16 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class HallOfFameEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
-    private String achievement;
-    @Lob // Use @Lob for large objects like Base64 strings
-    private String image;
+public class BlogPost {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String title;
+	private String author;
+	private String category;
+	@Lob
+	private String content;
+	@Lob
+	private byte [] image;
+	
 }
