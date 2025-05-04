@@ -1,5 +1,7 @@
 package sm.central.idgenerator;
 
+import java.time.LocalDate;
+
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
@@ -7,6 +9,7 @@ public class StudentIdGenerator implements IdentifierGenerator {
 
 	private static final long serialVersionUID = 1L;
 	private static final String PREFIX="STUD";
+
 	private static final int MAX_DIGITS=4;
 
 	@Override
@@ -27,9 +30,9 @@ public class StudentIdGenerator implements IdentifierGenerator {
         int number = Integer.parseInt(lastId.replace(PREFIX, "")) + 1;
         String numberStr = String.valueOf(number);
         int paddingLength = MAX_DIGITS - numberStr.length();
-
+        int Year=LocalDate.now().getYear();
         // Build the new ID with dynamic padding
-        return PREFIX + "0".repeat(paddingLength) + numberStr;
+        return PREFIX + Year+"0".repeat(paddingLength) + numberStr;
 		
 	}
 
