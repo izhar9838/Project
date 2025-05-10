@@ -14,12 +14,11 @@ import lombok.RequiredArgsConstructor;
 
 @Entity
 @Data
-@RequiredArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Column(unique = true)
 	@NonNull
@@ -30,10 +29,12 @@ public class UserEntity {
 	private String role;
 	@NonNull
 	private String email;
-	@Lob
+//	@Lob for mysql
 	@NonNull
+	@Column(name = "profile_image", columnDefinition = "BYTEA") //for postgresql
 	private byte[] profileImage;
 	@NonNull
 	private Long phoneNumber;
+
 
 }

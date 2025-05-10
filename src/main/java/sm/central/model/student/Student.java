@@ -6,19 +6,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -42,7 +35,8 @@ public class Student implements Serializable {
     private String gender;
     private String admissionId;
 
-    @Lob
+//    @Lob for mysql
+    @Column(columnDefinition = "BYTEA")
     private byte[] image;
 
     @CurrentTimestamp

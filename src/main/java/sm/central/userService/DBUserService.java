@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 public class DBUserService {
@@ -32,7 +33,15 @@ public class DBUserService {
 
         // Using existsByUsername
         if (!userRepository.existsByUsername("admin")) {
-            UserEntity entity = new UserEntity("admin", "admin", "admin", "i4izharali9838@gmail.com", byteArray,9838909249l);
+            UserEntity entity = new UserEntity();
+            entity.setRole("admin");
+            entity.setUsername("admin");
+            entity.setPassword("admin");
+            entity.setEmail("i4izharali9838@gmail.com");
+            entity.setPhoneNumber(9838909249L);
+            entity.setProfileImage(byteArray);
+
+
             userRepository.save(entity);
             System.out.println("Created admin user");
         }

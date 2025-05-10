@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import sm.central.dto.AssignmentDTO;
+import sm.central.dto.SubmitAssignDto;
+import sm.central.model.content.Assignment;
 import sm.central.model.content.Notes;
 import sm.central.model.content.Timetable;
 import sm.central.model.student.Student;
@@ -19,7 +19,6 @@ import sm.central.service.student.IStudentService;
 
 @RestController
 @RequestMapping("/api/student")
-@CrossOrigin(origins = "http://localhost:5173",allowCredentials = "true")
 public class StudentController {
 	@Autowired
 	IStudentService stuService;
@@ -44,5 +43,17 @@ public class StudentController {
 		List<Timetable> listTable = stuService.getTimeTableOfSpecificClass(username);
 		
 		return new ResponseEntity<>(listTable,HttpStatus.OK);
+	}
+	@GetMapping(path = "getAssignments" ,produces = "application/json")
+	public ResponseEntity<?> getAssignment(){
+		String username=SecurityContextHolder.getContext().getAuthentication().getName();
+		List<AssignmentDTO> response=stuService.getAssignments(username);
+		return new ResponseEntity<>(response,HttpStatus.OK);
+	}
+	@PostMapping(path = "/submitAssignment",consumes = "application/json")
+	public ResponseEntity<?> submitAssignment(@RequestBody SubmitAssignDto submitAssignDto){
+		String username=SecurityContextHolder.getContext().getAuthentication().getName();
+		String msg=stuService.submitAssignment(username,submitAssignDto);
+		return new ResponseEntity<>(msg,HttpStatus.OK);
 	}
 }

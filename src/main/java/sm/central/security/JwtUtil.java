@@ -43,10 +43,8 @@ public class JwtUtil {
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
-        System.out.println("inside generate token");
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        System.out.println("Role: " + role);
         String token = Jwts.builder()
             .setClaims(claims)
             .setSubject(userDetails.getUsername())
@@ -54,7 +52,6 @@ public class JwtUtil {
             .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
             .signWith(getKey())
             .compact();
-        System.out.println("Generated token: " + token);
         return token;
     }
 	private Key getKey() {

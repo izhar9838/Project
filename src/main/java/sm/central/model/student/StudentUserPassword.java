@@ -26,7 +26,8 @@ public class StudentUserPassword {
 	private String password;
 	private String role;
 	private String email;
-	@Lob
+//	@Lob for mysql
+	@Column(columnDefinition = "BYTEA")//for postgresql
 	private byte [] profileImage;
 	private Long phoneNumber;
 	@OneToOne

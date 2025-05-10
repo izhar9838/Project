@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import sm.central.model.classes.Class;
+import sm.central.model.content.Assignment;
 import sm.central.model.content.BlogPost;
 import sm.central.model.content.Notes;
 import sm.central.service.teacher.ITeacherService;
 
 @RestController
 @RequestMapping("/api/teacher")
-@CrossOrigin(origins = "http://localhost:5173",allowCredentials = "true")
 public class TeacherController {
 	@Autowired
 	private ITeacherService teacherService;
@@ -40,6 +40,11 @@ public class TeacherController {
 	@PostMapping(path="/upload-notes",consumes = "application/json")
 	public ResponseEntity<?> uploadContent(@RequestBody Notes notes){
 		String msg = teacherService.uploadNotes(notes);
+		return new ResponseEntity<>(msg,HttpStatus.OK);
+	}
+	@PostMapping(path = "assignAssignment" ,consumes = "application/json")
+	public ResponseEntity<?> assignAssignment(@RequestBody Assignment assignment){
+		String msg=teacherService.assignAssignment(assignment);
 		return new ResponseEntity<>(msg,HttpStatus.OK);
 	}
 }

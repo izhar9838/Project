@@ -24,7 +24,8 @@ public class Teacher_User_Pass {
 	private String password;
 	private String role;
 	private String email;
-	@Lob
+//	@Lob for mysql
+	@Column(columnDefinition = "BYTEA") //for postgresql
 	private byte [] porfileImage;
 	private Long phoneNumber;
 	@OneToOne

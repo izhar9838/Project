@@ -1,14 +1,17 @@
 package sm.central.service.teacher;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sm.central.model.classes.Class;
+import sm.central.model.content.Assignment;
 import sm.central.model.content.BlogPost;
 import sm.central.model.content.Notes;
 import sm.central.repository.classes.ClassRepository;
+import sm.central.repository.content.IAssigment;
 import sm.central.repository.content.IBlogRepository;
 import sm.central.repository.content.INotesRepository;
 @Service
@@ -19,6 +22,8 @@ public class TeacherServiceImpl implements ITeacherService {
 	private IBlogRepository blogRepo;
 	@Autowired
 	private INotesRepository noteRepo;
+	@Autowired
+	private IAssigment assigmentRepo;
 	@Override
 	public List<Class> getClassese() {
 		List<Class> all = classRepo.findAll();
@@ -45,5 +50,14 @@ public class TeacherServiceImpl implements ITeacherService {
 		else {
 			throw new RuntimeException("Some Eror occured");
 		}
+	}
+
+	@Override
+	public String assignAssignment(Assignment assignment) {
+		Assignment assignment1=assigmentRepo.save(assignment);
+		if (assignment!=null){
+			return "Assignment saved Successfully";
+		}
+		throw new RuntimeException("some error occured");
 	}
 }

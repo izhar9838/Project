@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,7 +50,6 @@ import sm.central.userService.ForgotPasswordService;
 
 @RestController
 @RequestMapping("/api/public")
-@CrossOrigin(origins = "http://localhost:5173",allowCredentials = "true")
 public class UserController {
 
 	@Autowired
@@ -71,26 +69,21 @@ public class UserController {
 		String username=user.getUsername();
 		String password=user.getPassword();
 		String role=user.getRole();
-		System.out.println(username+"  "+password+"  "+role);
 		try {
             // Validate input parameters
-			System.out.println("inside try block");
-            if (username == null || password == null || role == null || 
+            if (username == null || password == null || role == null ||
                 username.trim().isEmpty() || password.trim().isEmpty() || role.trim().isEmpty()) {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "All fields (username, password, role) are required");
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
-            System.out.println("Authentication Start");
             // Authenticate username and password
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
             );
-            System.out.println("cusotmuserdetails");
 
             // Get user details
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            System.out.println(userDetails);
 
             // Check if the requested role matches the user's role
             if (!userDetails.getRole().equalsIgnoreCase(role)) {
@@ -98,10 +91,8 @@ public class UserController {
                 error.put("error", "You don't have this role");
                 return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
             }
-            System.out.println("generating token");
             // Generate JWT token if all checks pass
             String token = jwtUtil.generateToken(userDetails, role);
-            System.out.println("token generated successfully;");
             //getting user whole data from db
             UserEntity wholeUser = userRepo.findByUsername(username);
             //prepare login response data for sending;
@@ -189,9 +180,7 @@ public class UserController {
     public ResponseEntity<?> getAccountInfo(@RequestHeader("Authorization") String token){
     	String jwtToken = token.substring(7);
     	String username = jwtUtil.extractUsername(jwtToken);
-    	System.out.println(username);
     	String role = jwtUtil.extractRole(jwtToken);
-    	System.out.println(role);
     	UserInfoDto userInfo = freeUserService.getUserInfo(username, role);
     	return new ResponseEntity<>(userInfo,HttpStatus.OK);
     	
@@ -200,9 +189,7 @@ public class UserController {
     public ResponseEntity<?> editProfile(@RequestHeader("Authorization") String token){
     	String jwtToken = token.substring(7);
     	String username = jwtUtil.extractUsername(jwtToken);
-    	System.out.println(username);
     	String role = jwtUtil.extractRole(jwtToken);
-    	System.out.println(role);
     	UserInfoDto userInfo = freeUserService.getUserInfo(username, role);
     	return new ResponseEntity<>(userInfo,HttpStatus.OK);
     	

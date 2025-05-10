@@ -2,17 +2,11 @@ package sm.central.model.staff;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.OneToOne;
 import lombok.Data;
 
 @Entity
@@ -28,7 +22,8 @@ public class Teacher {
     @JsonProperty("DOB")
     private LocalDate DOB;
     private String gender;
-    @Lob
+    //    @Lob for mysql
+    @Column(columnDefinition = "BYTEA")
     private byte[] image;
 
     @OneToOne(mappedBy = "teacher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

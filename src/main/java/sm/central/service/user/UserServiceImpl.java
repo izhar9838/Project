@@ -1,5 +1,6 @@
 package sm.central.service.user;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,7 +83,7 @@ public class UserServiceImpl  implements IUserService{
 		return blogRepo.findById(id).get();
 	}
 
-
+	@Transactional()
 	public UserInfoDto getUserInfo(String username, String role) {
 		if (role.equalsIgnoreCase("teacher")) {
 			if (username == null || username.isEmpty()) {
@@ -99,7 +100,7 @@ public class UserServiceImpl  implements IUserService{
 			Teacher teacher = optional.get();
 			UserInfoDto infoDto = new UserInfoDto();
 			infoDto.setId(teacher.getTeacherId());
-			infoDto.setFullName(teacher.getFirstName()+""+teacher.getLastName());
+			infoDto.setFullName(String.format("%s %s", teacher.getFirstName(), teacher.getLastName()));
 			infoDto.setRole(role);
 			infoDto.setPassword(teacher.getTeacher_user_pass().getPassword());
 			infoDto.setUsername(username);
@@ -134,7 +135,7 @@ public class UserServiceImpl  implements IUserService{
 			UserInfoDto infoDto = new UserInfoDto();
 			infoDto.setId(student.getStudentId());
 			infoDto.setFullName(String.format("%s %s", student.getFirstName(), student.getLastName()));
-			System.out.println(" \n \n \n \n \n Full name is "+infoDto.getFullName());
+
 			infoDto.setRole(role);
 			infoDto.setPassword(student.getUserPass().getPassword());
 			infoDto.setUsername(username);
