@@ -9,6 +9,7 @@ public class Assignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String teacherId;
     private String classNo;
     private String title;
     private String mimeType;

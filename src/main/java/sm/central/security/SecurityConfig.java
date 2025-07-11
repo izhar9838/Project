@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,22 +26,24 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	@Autowired
 	private UserDetailsService detailsService;
-	@Autowired
 	private JwtFilter jwtFilter;
-	@Autowired
     private JwtUtil jwtUtil;
-
+    public SecurityConfig(UserDetailsService detailsService, JwtFilter jwtFilter, JwtUtil jwtUtil) {
+        this.detailsService = detailsService;
+        this.jwtFilter = jwtFilter;
+        this.jwtUtil = jwtUtil;
+    }
    @SuppressWarnings("removal")
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationManager authenticationManager) throws Exception {
 	   RoleFilter roleFilter = new RoleFilter(authenticationManager, jwtUtil);
        http.cors(withDefaults())
-               .csrf(cust -> cust.disable())
+               .csrf(AbstractHttpConfigurer::disable)
 
                .authorizeHttpRequests(req -> req.
-                       requestMatchers("api/public/**").permitAll()
+                       requestMatchers("/api/public/**").permitAll()
+                       .requestMatchers("/api/public/health").permitAll()
                        .requestMatchers("/api/student/**").hasRole("student")
                        .requestMatchers("/api/teacher/**").hasRole("teacher")
                        .requestMatchers("/api/admin/**").hasRole("admin")
@@ -55,7 +58,7 @@ public class SecurityConfig {
    @Bean
    public AuthenticationProvider authenticationProvider() {
 	   DaoAuthenticationProvider provider=new DaoAuthenticationProvider();
-	   provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+	   provider.setPasswordEncoder(passwordEncoder());
 	   provider.setUserDetailsService(detailsService);
 	   return provider;
    }

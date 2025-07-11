@@ -1,29 +1,25 @@
 package sm.central.restcontroller;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.zxing.WriterException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import sm.central.dto.FeesDetailsDTO;
+import sm.central.dto.admin.CheckPaymentDto;
+import sm.central.dto.admin.FeeRecieptDto;
+import sm.central.dto.admin.FeesDetailsDTO;
 import sm.central.model.classes.Class;
 
 import sm.central.model.content.Announcement;
 import sm.central.model.content.HallOfFameEntity;
 import sm.central.model.content.Timetable;
 import sm.central.model.staff.Teacher;
-import sm.central.model.student.Fees_Details;
 import sm.central.model.student.Student;
 import sm.central.security.model.UserEntity;
 import sm.central.service.admin.IAdminService;
@@ -40,20 +36,32 @@ public class AdminController {
 	
 	@PostMapping(value = "/enrollStudent",consumes = "application/json")
 	public ResponseEntity<?> enrollStudent(@RequestBody Student student){
-//		System.out.println(student);
-		System.out.println("enter enroll restconroller");
-		
-			
 		String	msg = adminService.enrollStudent(student);
 			
-		System.out.println("service has been called from rest controller");
-		
+
 		return new ResponseEntity<String>(msg,HttpStatus.CREATED);
 	}
 	@PostMapping(path = "/feesSubmission",consumes = "application/json")
 	public ResponseEntity<?> feesSubmission(@RequestBody FeesDetailsDTO feeDto){
-		Fees_Details feesSubmission = adminService.feesSubmission(feeDto);
-		return new ResponseEntity<>(feesSubmission,HttpStatus.OK);
+		if (feeDto.getPayment_mode().equals("UPI")){
+            try {
+               String qrCode= adminService.upiPayment(feeDto.getStudentId(),feeDto.getAmount());
+
+				return new ResponseEntity<>(Map.of("qrCode",qrCode),HttpStatus.OK);
+            } catch (WriterException e) {
+                throw new RuntimeException(e.getMessage());
+            } catch (IOException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+			FeeRecieptDto feeRecieptDto = adminService.feesSubmission(feeDto);
+			return new ResponseEntity<>(feeRecieptDto,HttpStatus.OK);
+		}
+    }
+	@PostMapping(path = "/confirmPayment",produces = "application/json")
+	public ResponseEntity<?> confirmPayment(@RequestParam String paymentId, @RequestBody FeesDetailsDTO feesDetailsDTO){
+		FeeRecieptDto feeRecieptDto=adminService.confirmPayment(paymentId,feesDetailsDTO);
+		return null;
 	}
 	@PostMapping(path = "/enrollTeacher",consumes = "application/json")
 	public ResponseEntity<?> enrollTeacher(@RequestBody Teacher teacher){
@@ -104,5 +112,38 @@ public class AdminController {
     	String msg="Announcement Create for"+announcement1.getTitle();
     	return new ResponseEntity<>(msg,HttpStatus.CREATED);
     }
-    
+	@GetMapping(path = "/check-payment",produces = "application/json")
+	public ResponseEntity<?> checkPayment(@RequestParam String paymentId){
+		CheckPaymentDto checkPaymentDto =adminService.checkPayment(paymentId);
+		return new ResponseEntity<>(checkPaymentDto,HttpStatus.OK);
+	}
+	@GetMapping(path = "/searchUser")
+	public ResponseEntity<?> searchUser(@RequestParam String query){
+        Map<String,Object> userDetails= null;
+        try {
+            userDetails = adminService.findUserByQuery(query);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new ResponseEntity<>(userDetails,HttpStatus.OK);
+
+	}
+	@GetMapping(path = "/getFeesDetails",produces = "application/json")
+    public ResponseEntity<?> getFeesDetailsPerPage(@RequestParam String studentId,@RequestParam(defaultValue = "0") int page){
+			Map<String,Object> fetchFeesDetailsPerPage=adminService.fetchFeesDetailsPerPage(studentId,page);
+		return new ResponseEntity<>(fetchFeesDetailsPerPage,HttpStatus.OK);
+	}
+	@PostMapping(path = "/cancelPayment")
+	public ResponseEntity<?> cancelPayment(@RequestParam String paymentId){
+		String msg=adminService.cancelPayment(paymentId);
+		return ResponseEntity.ok(msg);
+	}
+	public ResponseEntity<?> addSubject(@RequestParam String subject){
+        try {
+            adminService.addSubject(subject);
+            return ResponseEntity.ok().body("Add Success");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

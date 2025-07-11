@@ -2,12 +2,12 @@ package sm.central.userService;
 
 //UserService.java
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import lombok.NonNull;
-import sm.central.dto.EmailRequestDto;
-import sm.central.dto.OtpDto;
-import sm.central.dto.ResetPasswordDto;
+import sm.central.dto.user.EmailRequestDto;
+import sm.central.dto.user.OtpDto;
+import sm.central.dto.user.ResetPasswordDto;
 import sm.central.model.staff.Teacher;
 import sm.central.model.staff.Teacher_User_Pass;
 import sm.central.model.student.Student;
@@ -36,6 +36,8 @@ public class ForgotPasswordService {
  
 @Autowired
 private EmailService emailService;
+@Autowired
+private PasswordEncoder passwordEncoder;
  
  // Generate 6-digit OTP
  public String generateOTP() {
@@ -53,9 +55,7 @@ private EmailService emailService;
      }
      
      String otp = generateOTP();
-     System.out.println("otp generated");
      OtpEntity otpEntity = otpRepository.findByEmail(request.getEmail());
-     System.out.println("finding otpentity"+otpEntity);
      if (otpEntity == null) {
     	 System.out.println("if block if otp entity is null");
          otpEntity = new OtpEntity();
@@ -65,12 +65,9 @@ private EmailService emailService;
      otpEntity.setOtp(otp);
      
      otpEntity.setOtpExpiry(System.currentTimeMillis() + 300000); // 5 minutes expiry
-     System.out.println("setting expiration time");
      OtpEntity save = otpRepository.save(otpEntity);
-     System.out.println("otp entity save "+save);
-     
+
      // In a real application, send OTP via email/SMS here
-     System.out.println("OTP for " + request.getEmail() + ": " + otp);
      emailService.sendOtpEmail(request.getEmail(), otp);
      return "OTP sent to your email";
  }
@@ -98,6 +95,7 @@ private EmailService emailService;
  // Reset password
  public String resetPassword(ResetPasswordDto request) {
      UserEntity user = userRepository.findByEmail(request.getEmail());
+     user.setPassword(passwordEncoder.encode(request.getNewPassword()));
      System.out.println("otp is : =="+request.getOtp());
      if (user == null) {
          throw new RuntimeException("User not found");
@@ -121,7 +119,7 @@ private EmailService emailService;
 
 	String role = user.getRole();
 	if (role.equals("admin")) {
-		 user.setPassword(request.getNewPassword());
+		 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 	     userRepository.save(user);
 	     otpRepository.delete(otpEntity);
 	     return "Password reset successfully";
@@ -130,7 +128,7 @@ private EmailService emailService;
 		Teacher existTeacher = teaRepo.findByUsernameWithDetails(username).get();
 		Teacher_User_Pass teacher_user_pass = existTeacher.getTeacher_user_pass();
 		existTeacher.getTeacher_user_pass().setTeacher(existTeacher);
-		teacher_user_pass.setPassword(request.getNewPassword());
+		teacher_user_pass.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		teaRepo.save(existTeacher);
 		userRepository.save(user);
 	    otpRepository.delete(otpEntity);
@@ -140,7 +138,7 @@ private EmailService emailService;
 		Student existStudent = stuRepo.findByUsernameWithDetails(username).get();
 		StudentUserPassword userPass = existStudent.getUserPass();
 		existStudent.getUserPass().setStudent(existStudent);
-		userPass.setPassword(request.getNewPassword());
+		userPass.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		stuRepo.save(existStudent);
 		userRepository.save(user);
 	    otpRepository.delete(otpEntity);

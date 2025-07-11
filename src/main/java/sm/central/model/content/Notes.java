@@ -1,10 +1,6 @@
 package sm.central.model.content;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +17,7 @@ public class Notes {
 	private String classLevel;
 	private String description;
 	private String mimeType;
-	@Lob
-	private byte[] notes;
+//	@Lob for mysql
+@Column(columnDefinition = "BYTEA")//for postgresql
+private byte[] notes;
 }

@@ -3,14 +3,14 @@ package sm.central.service.user;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
-import sm.central.dto.ChangePasswordDto;
-import sm.central.dto.UpdateUserDto;
-import sm.central.dto.UserInfoDto;
+import sm.central.dto.user.ChangePasswordDto;
+import sm.central.dto.user.UpdateUserDto;
+import sm.central.dto.user.UserInfoDto;
+import sm.central.exception.custom.StudentNotFoundException;
+import sm.central.exception.custom.TeacherNotFoundException;
 import sm.central.model.content.Announcement;
 import sm.central.model.content.BlogPost;
 import sm.central.model.content.HallOfFameEntity;
@@ -29,12 +29,9 @@ import sm.central.repository.content.TimetableRepository;
 import sm.central.repository.staff.ITeacherRepo;
 import sm.central.repository.student.IStudentRepo;
 import sm.central.security.JwtUtil;
-import sm.central.security.model.CustomUserDetails;
 import sm.central.security.model.UserEntity;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -57,6 +54,8 @@ public class UserServiceImpl  implements IUserService{
     private JwtUtil jwtUtil;
     @Autowired
     private AuthenticationManager authenticationManager;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
     public List<Timetable> getAllTimetables() {
         return repository.findAll();
@@ -94,7 +93,7 @@ public class UserServiceImpl  implements IUserService{
 	        Optional<Teacher> teacherOptional = teacherRepo.findByUsernameWithDetails(username);
 	        if (teacherOptional.isEmpty()) {
 //	            logger.warn("No Teacher found for username: {}", username);
-	            throw new EntityNotFoundException("No Teacher found for username: " + username);
+	            throw new TeacherNotFoundException("No Teacher found for username: " + username);
 	        }
 			Optional<Teacher> optional = teacherRepo.findByUsernameWithDetails(username);
 			Teacher teacher = optional.get();
@@ -129,7 +128,7 @@ public class UserServiceImpl  implements IUserService{
 			Optional<Student> studentOptional = stuRepo.findByUsernameWithDetails(username);
 			if (studentOptional.isEmpty()) {
 //	            logger.warn("No Teacher found for username: {}", username);
-	            throw new EntityNotFoundException("No Teacher found for username: " + username);
+	            throw new StudentNotFoundException("No Student found for username: " + username);
 	        }
 			Student student = studentOptional.get();
 			UserInfoDto infoDto = new UserInfoDto();
@@ -145,7 +144,7 @@ public class UserServiceImpl  implements IUserService{
 			return infoDto;
 			
 		}
-		 throw new RuntimeException("Some Server Error Occured") ;
+		 throw new RuntimeException("Some Server Error Occur") ;
 	}
 
 
@@ -210,41 +209,42 @@ public class UserServiceImpl  implements IUserService{
 			return newUser;
 		}
 		
-		throw new RuntimeException("Some Server Error Occured");
+		throw new RuntimeException("Some Server Error Occur");
 	}
 
 
 	@Override
 	public String changePassword(ChangePasswordDto changeDto,String username) {
 		 UserEntity existUser = userRepo.findByUsername(username);
-		 if (existUser.getPassword().equals(changeDto.getCurrentPassword())) {
+		 boolean flag=passwordEncoder.matches(changeDto.getNewPassword(),existUser.getPassword());
+		 if (flag) {
 			 if (existUser.getRole().equalsIgnoreCase("teacher")) {
 					Teacher teacher = teacherRepo.findByUsernameWithDetails(username).get();
-					teacher.getTeacher_user_pass().setPassword(changeDto.getNewPassword());
-					existUser.setPassword(changeDto.getNewPassword());
+					teacher.getTeacher_user_pass().setPassword(passwordEncoder.encode(changeDto.getNewPassword()));
+					existUser.setPassword(passwordEncoder.encode(changeDto.getNewPassword()));
 					userRepo.save(existUser);
 					teacherRepo.save(teacher);
 					return "Password Changed Successfully";
 					
 				}
 			 else if (existUser.getRole().equalsIgnoreCase("admin")) {
-				existUser.setPassword(changeDto.getNewPassword());
+				existUser.setPassword(passwordEncoder.encode(changeDto.getNewPassword()));
 				userRepo.save(existUser);
 				return "Password Changed Successfully";
 			}
 			 else if ( existUser.getRole().equals("student")) {
-				 existUser.setPassword(changeDto.getNewPassword());
+				 existUser.setPassword(passwordEncoder.encode(changeDto.getNewPassword()));
 				 Student existStudent = stuRepo.findByUsernameWithDetails(username).get();
 				 StudentUserPassword userPass = existStudent.getUserPass();
 				 existStudent.getUserPass().setStudent(existStudent);
-				 userPass.setPassword(changeDto.getNewPassword());
+				 userPass.setPassword(passwordEncoder.encode(changeDto.getNewPassword()));
 				 stuRepo.save(existStudent);
 				 userRepo.save(existUser);
-				 return "Password Changed Succesfully";
+				 return "Password Changed Successfully";
 			 }
 			
 		}
-		throw new RuntimeException("Some Server Erro Occured");
+		throw new RuntimeException("Some Server Error Occur");
 	}
 
 
@@ -254,7 +254,11 @@ public class UserServiceImpl  implements IUserService{
 		return annoucRepo.findAll();
 	}
 
-	
+	@Override
+	public UserEntity findByUsername(String username) {
 
-    
+		return userRepo.findByUsername(username);
+	}
+
+
 }

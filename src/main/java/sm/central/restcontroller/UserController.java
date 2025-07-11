@@ -1,56 +1,41 @@
 package sm.central.restcontroller;
 
 
-
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
-
-import sm.central.dto.ChangePasswordDto;
-import sm.central.dto.EmailRequestDto;
-import sm.central.dto.OtpDto;
-import sm.central.dto.ResetPasswordDto;
-import sm.central.dto.UpdateUserDto;
-import sm.central.dto.UserInfoDto;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.*;
+import sm.central.dto.user.*;
 import sm.central.model.content.Announcement;
 import sm.central.model.content.BlogPost;
 import sm.central.model.content.HallOfFameEntity;
 import sm.central.model.content.Timetable;
+import sm.central.model.token.RefreshToken;
 import sm.central.repository.UserRepository;
 import sm.central.security.JwtUtil;
 import sm.central.security.model.CustomUserDetails;
 import sm.central.security.model.LoginResponse;
 import sm.central.security.model.UserEntity;
+import sm.central.service.token.RefreshTokenService;
 import sm.central.service.user.IUserService;
 import sm.central.userService.ForgotPasswordService;
 
-
+import javax.validation.Valid;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/public")
 public class UserController {
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
 	@Autowired
     private AuthenticationManager authenticationManager;
@@ -63,6 +48,8 @@ public class UserController {
     private UserRepository userRepo;
     @Autowired
     private ForgotPasswordService userService;
+    @Autowired
+    private UserDetailsService userDetailsService;
 	
 	@PostMapping(path = "/login",consumes = "application/json")
 	public ResponseEntity<?> loginUser(@RequestBody UserEntity user){
@@ -93,6 +80,7 @@ public class UserController {
             }
             // Generate JWT token if all checks pass
             String token = jwtUtil.generateToken(userDetails, role);
+            RefreshToken refreshToken=refreshTokenService.createRefreshToken(username);
             //getting user whole data from db
             UserEntity wholeUser = userRepo.findByUsername(username);
             //prepare login response data for sending;
@@ -108,6 +96,7 @@ public class UserController {
             // Prepare success response
             Map<String, Object> response = new HashMap<>();
             response.put("token",token);
+            response.put("refreshToken", refreshToken.getToken());
             response.put("user", loginResponse);
             
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -123,6 +112,44 @@ public class UserController {
         }
 		
 	}
+    @PostMapping(path = "/logout")
+    public ResponseEntity<?> logOut(@Valid @RequestBody LogoutRequest logoutRequest){
+        String refreshToken = logoutRequest.getRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.badRequest().body("Refresh token is required");
+        }
+
+        try {
+            refreshTokenService.deleteByToken(refreshToken);
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to logout: " + e.getMessage());
+        }
+    }
+    @PostMapping("/auth/refresh-token")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        try {
+            return refreshTokenService.findByToken(refreshToken)
+                    .map(refreshTokenService::verifyExpiration)
+                    .map(refreshTokenEntity -> {
+                        UserEntity user = freeUserService.findByUsername(refreshTokenEntity.getUsername());
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+                        String accessToken = jwtUtil.generateToken(userDetails, user.getRole());
+                        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(refreshTokenEntity);
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("accessToken", accessToken);
+                        response.put("refreshToken", newRefreshToken.getToken());
+                        response.put("user", user);
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    })
+                    .orElseGet(() -> ResponseEntity.status(401).body(Map.of("Msg", "Invalid Refresh Token")));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body(Map.of("Msg", e.getMessage() != null ? e.getMessage() : "Invalid or expired refresh token"));
+        }
+    }
 	@PostMapping(path="/forgot-password" ,consumes = "application/json")
     public ResponseEntity<String> forgotPassword(@RequestBody EmailRequestDto request) {
 		String msg = userService.requestForgotPassword(request);
@@ -148,10 +175,10 @@ public class UserController {
 	public List<HallOfFameEntity> getAllHallOfFame(){
 		return freeUserService.getAllHallOfFame();
 	}
-    @GetMapping("/api/user/profile-image")
-    public ResponseEntity<?> getProfileImage(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        String username = jwtUtil.extractUsername(token); // Decode JWT to get "sub"
+    @GetMapping("/user/profile-image")
+    public ResponseEntity<?> getProfileImage() {
+        String username=SecurityContextHolder.getContext().getAuthentication().getName();
+        // Decode JWT to get "sub"
         UserEntity byUsername = userRepo.findByUsername(username);
         byte []profileImage=byUsername.getProfileImage();
         return ResponseEntity.ok(Collections.singletonMap("profileImage", profileImage));
@@ -177,19 +204,35 @@ public class UserController {
 
     }
     @GetMapping(path = "/accountInfo",produces = "application/json")
-    public ResponseEntity<?> getAccountInfo(@RequestHeader("Authorization") String token){
-    	String jwtToken = token.substring(7);
-    	String username = jwtUtil.extractUsername(jwtToken);
-    	String role = jwtUtil.extractRole(jwtToken);
+    public ResponseEntity<?> getAccountInfo(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName(); // e.g., belal123
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .map(auth -> auth.startsWith("ROLE_") ? auth.substring(5) : auth)
+                .orElse(null); // e.g., STUDENT
+
+        if (role == null) {
+            return new ResponseEntity<>(Map.of("message", "No role assigned"), HttpStatus.BAD_REQUEST);
+        }
     	UserInfoDto userInfo = freeUserService.getUserInfo(username, role);
     	return new ResponseEntity<>(userInfo,HttpStatus.OK);
     	
     }
     @GetMapping(path = "/edit-profile",produces = "application/json")
-    public ResponseEntity<?> editProfile(@RequestHeader("Authorization") String token){
-    	String jwtToken = token.substring(7);
-    	String username = jwtUtil.extractUsername(jwtToken);
-    	String role = jwtUtil.extractRole(jwtToken);
+    public ResponseEntity<?> editProfile(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName(); // e.g., belal123
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .map(auth -> auth.startsWith("ROLE_") ? auth.substring(5) : auth)
+                .orElse(null); // e.g., STUDENT
+
+        if (role == null) {
+            return new ResponseEntity<>(Map.of("message", "No role assigned"), HttpStatus.BAD_REQUEST);
+        }
     	UserInfoDto userInfo = freeUserService.getUserInfo(username, role);
     	return new ResponseEntity<>(userInfo,HttpStatus.OK);
     	
@@ -211,6 +254,10 @@ public class UserController {
     public ResponseEntity<?> getAnnoucement(){
     	List<Announcement> lisAnnouc = freeUserService.getAnnouncements();
     	return new ResponseEntity<>(lisAnnouc,HttpStatus.OK);
+    }
+    @GetMapping(path = "/health", produces = "application/json")
+    public ResponseEntity<?> healthCheck() {
+        return ResponseEntity.ok(Map.of("status", "up"));
     }
 
 }

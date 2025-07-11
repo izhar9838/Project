@@ -1,17 +1,20 @@
 package sm.central.service.student;
 import java.util.List;
+import java.util.Map;
 
-import sm.central.dto.AssignmentDTO;
-import sm.central.dto.SubmitAssignDto;
-import sm.central.model.content.Assignment;
+import sm.central.dto.student.AssignmentDTO;
+import sm.central.dto.student.SubmitAssignDto;
 import sm.central.model.content.Notes;
 import sm.central.model.content.Timetable;
-import sm.central.model.student.Student;
 
 public interface IStudentService {
-	public Student getStudentByUsername(String username);
+	public Map<String ,Object> getStudentByUsername(String username);
 	public List<Notes> getNotesByClassLevel(String username);
 	public List<Timetable> getTimeTableOfSpecificClass(String username);
 	public List<AssignmentDTO> getAssignments(String username);
 	public String submitAssignment(String username, SubmitAssignDto submitDto);
+
+	Map<String, Object> fetchFeesDetailsPerPage(String studentId, int page);
+
+    List<Object> getResults(String studentId);
 }

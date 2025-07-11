@@ -1,4 +1,4 @@
-package sm.central.dto;
+package sm.central.dto.user;
 
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package sm.central.dto;
+package sm.central.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

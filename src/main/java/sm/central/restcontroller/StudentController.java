@@ -1,6 +1,7 @@
 package sm.central.restcontroller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,12 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import sm.central.dto.AssignmentDTO;
-import sm.central.dto.SubmitAssignDto;
-import sm.central.model.content.Assignment;
+import sm.central.dto.student.AssignmentDTO;
+import sm.central.dto.student.SubmitAssignDto;
 import sm.central.model.content.Notes;
 import sm.central.model.content.Timetable;
-import sm.central.model.student.Student;
 import sm.central.repository.content.INotesRepository;
 import sm.central.service.student.IStudentService;
 
@@ -27,9 +26,9 @@ public class StudentController {
 	@GetMapping(path = "/getprofile",produces = "application/json")
 	public ResponseEntity<?> getStudentByUsername(){
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
-		Student existStudent = stuService.getStudentByUsername(username);
-		
-		return new ResponseEntity<>(existStudent,HttpStatus.OK);
+		Map<String,Object> resMap = stuService.getStudentByUsername(username);
+
+		return new ResponseEntity<>(resMap,HttpStatus.OK);
 	}
 	@GetMapping(path = "/getNotes",produces = "application/json")
 	public ResponseEntity<?> getNotes(){
@@ -55,5 +54,16 @@ public class StudentController {
 		String username=SecurityContextHolder.getContext().getAuthentication().getName();
 		String msg=stuService.submitAssignment(username,submitAssignDto);
 		return new ResponseEntity<>(msg,HttpStatus.OK);
+	}
+	@GetMapping(path = "/getFeesDetails",produces = "application/json")
+	public ResponseEntity<?> getFeesDetailsPerPage(@RequestParam String studentId,@RequestParam(defaultValue = "0") int page){
+		Map<String,Object> fetchFeesDetailsPerPage=stuService.fetchFeesDetailsPerPage(studentId,page);
+		return new ResponseEntity<>(fetchFeesDetailsPerPage,HttpStatus.OK);
+	}
+	@GetMapping("/{studentId}/results")
+	public ResponseEntity<?> getResults(@PathVariable String studentId){
+		List<Object> results=stuService.getResults(studentId);
+		System.out.println(results.toString());
+		return new ResponseEntity<>(results,HttpStatus.OK);
 	}
 }

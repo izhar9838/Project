@@ -1,4 +1,4 @@
-package sm.central.dto;
+package sm.central.dto.student;
 
 import lombok.Data;
 

@@ -1,10 +1,15 @@
 package sm.central.userService;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
+import sm.central.model.result.Examination;
+import sm.central.model.result.Subject;
 import sm.central.repository.UserRepository;
+import sm.central.repository.result.IExaminationRepo;
+import sm.central.repository.result.ISubjectRepo;
 import sm.central.security.model.UserEntity;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +23,12 @@ import java.util.Arrays;
 public class DBUserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private IExaminationRepo examinationRepo;
+    @Autowired
+    private ISubjectRepo subjectRepo;
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeDefaultUsers() throws IOException {
@@ -36,7 +47,7 @@ public class DBUserService {
             UserEntity entity = new UserEntity();
             entity.setRole("admin");
             entity.setUsername("admin");
-            entity.setPassword("admin");
+            entity.setPassword(passwordEncoder.encode("admin"));
             entity.setEmail("i4izharali9838@gmail.com");
             entity.setPhoneNumber(9838909249L);
             entity.setProfileImage(byteArray);
@@ -46,4 +57,27 @@ public class DBUserService {
             System.out.println("Created admin user");
         }
     }
+    @EventListener(ApplicationReadyEvent.class)
+    public void run(ApplicationReadyEvent event) throws Exception {
+        // Insert subjects
+        String[] subjects = {"Science", "Math", "English", "History", "Geography", "Art", "Physics", "Chemistry", "Biology", "Sport", "Computer"};
+        for (String subjectName : subjects) {
+            if (!subjectRepo.findBySubject(subjectName).isPresent()) {
+                Subject subject = new Subject();
+                subject.setSubject(subjectName);
+                subjectRepo.save(subject);
+            }
+        }
+
+        // Insert examination types
+        String[] examTypes = {"First Term", "Second Term", "Final Term"};
+        for (String examType : examTypes) {
+            if (!examinationRepo.findByType(examType).isPresent()) {
+                Examination examination = new Examination();
+                examination.setType(examType);
+                examinationRepo.save(examination);
+            }
+        }
+    }
+
 }

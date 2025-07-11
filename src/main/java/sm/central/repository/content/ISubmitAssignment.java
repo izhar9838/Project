@@ -5,4 +5,5 @@ import sm.central.model.content.SubmitAssignment;
 
 public interface ISubmitAssignment extends JpaRepository<SubmitAssignment,Long> {
     public boolean existsByAssignmentIdAndStudentId(Long id,String stuId);
+    SubmitAssignment findByAssignmentIdAndStudentId(Long assignmentId, String studentId);
 }

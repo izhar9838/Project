@@ -1,10 +1,6 @@
 package sm.central.model.content;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +15,7 @@ public class HallOfFameEntity {
     private Long id;
     private String name;
     private String achievement;
-    @Lob // Use @Lob for large objects like Base64 strings
+//    @Lob // Use @Lob for large objects like Base64 strings for mysql
+    @Column(columnDefinition = "BYTEA")//for postgresql
     private String image;
 }

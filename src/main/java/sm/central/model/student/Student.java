@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.GenericGenerator;
@@ -17,6 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 import sm.central.model.result.StudentResult;
 @Entity
+@JsonFilter("studentFilter")
 @ToString(exclude = {"contact_details", "academic_info", "userPass", "fees_details", "results"})
 @Getter
 @Setter
@@ -56,6 +58,8 @@ public class Student implements Serializable {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<StudentResult> results = new HashSet<>();
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<Attendance> attendances = new HashSet<>();
 
     // Existing setters for bidirectional relationships
     public void setUserPass(StudentUserPassword userPass) {
@@ -117,5 +121,18 @@ public class Student implements Serializable {
             }
         }
         this.results = results;
+    }
+    public void setAttendances(Set<Attendance> attendances) {
+        if (this.attendances != null) {
+            for (Attendance attendance : this.attendances) {
+                attendance.setStudent(null);
+            }
+        }
+        if (attendances != null) {
+            for (Attendance attendance : attendances) {
+                attendance.setStudent(this);
+            }
+        }
+        this.attendances = attendances;
     }
 }

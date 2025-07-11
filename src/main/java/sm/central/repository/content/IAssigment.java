@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface IAssigment extends JpaRepository<Assignment,Long> {
     public List<Assignment> findByClassNo(String classNo);
+    public  boolean existsByTeacherIdAndId(String teacherId, Long assignmentId);
 }

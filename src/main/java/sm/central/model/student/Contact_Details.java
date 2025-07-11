@@ -1,20 +1,18 @@
 package sm.central.model.student;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.persistence.*;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import sm.central.customfilter.ByteArrayListDeserializer;
 
 @Entity
 @Setter
@@ -32,7 +30,12 @@ public class Contact_Details implements Serializable {
 	private String email;
 	private String guardianName;
 	private Long guardianNumber;
-	@OneToOne
+    @Column(columnDefinition = "BYTEA")
+    @ElementCollection
+	@JsonDeserialize(using = ByteArrayListDeserializer.class)
+    private List<byte[]> aadhaarImages;
+
+    @OneToOne
 	@JoinColumn(name = "student_id")
 	@JsonBackReference
 	@JsonIgnore

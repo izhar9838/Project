@@ -3,13 +3,12 @@ package sm.central.model.staff;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.persistence.*;
 import lombok.Data;
+import sm.central.customfilter.ByteArrayListDeserializer;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -19,7 +18,12 @@ public class Teacher_Contact_Details {
 	private Integer contactId;
 	private String address;
 	private String email;
-	private Long phoneNumber; 
+	private Long phoneNumber;
+	@Column(columnDefinition = "BYTEA")
+	@ElementCollection
+	@JsonDeserialize(using = ByteArrayListDeserializer.class)
+	private List<byte[]> aadhaarImages;
+
 	@OneToOne
 	@JoinColumn(name = "teacher_id")
 	@JsonBackReference

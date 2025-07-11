@@ -1,11 +1,10 @@
 package sm.central.service.user;
 
 import java.util.List;
-import java.util.Map;
 
-import sm.central.dto.ChangePasswordDto;
-import sm.central.dto.UpdateUserDto;
-import sm.central.dto.UserInfoDto;
+import sm.central.dto.user.ChangePasswordDto;
+import sm.central.dto.user.UpdateUserDto;
+import sm.central.dto.user.UserInfoDto;
 import sm.central.model.content.Announcement;
 import sm.central.model.content.BlogPost;
 import sm.central.model.content.HallOfFameEntity;
@@ -21,5 +20,6 @@ public interface IUserService {
 	public UserEntity updateProfile(UpdateUserDto userDto,String username);
 	public String changePassword(ChangePasswordDto changeDto,String username);
 	public List<Announcement> getAnnouncements();
+	public UserEntity findByUsername(String username);
 	
 }

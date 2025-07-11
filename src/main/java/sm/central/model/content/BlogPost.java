@@ -1,10 +1,6 @@
 package sm.central.model.content;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +18,8 @@ public class BlogPost {
 	private String category;
 	@Lob
 	private String content;
-	@Lob
+//	@Lob for mysql
+	@Column(columnDefinition = "BYTEA")//for postgresql
 	private byte [] image;
 	
 }
