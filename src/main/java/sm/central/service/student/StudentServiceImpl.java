@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import sm.central.dto.student.AssignmentDTO;
+import sm.central.dto.student.AttendanceSummary;
 import sm.central.dto.student.SubmitAssignDto;
 import sm.central.exception.custom.AssignmentNotFoundException;
 import sm.central.exception.custom.StudentNotFoundException;
@@ -28,18 +29,20 @@ import sm.central.repository.content.INotesRepository;
 import sm.central.repository.content.ISubmitAssignment;
 import sm.central.repository.content.TimetableRepository;
 import sm.central.repository.result.IStudentResultRepo;
+import sm.central.repository.student.IAttendanceRepo;
 import sm.central.repository.student.IFeesRepo;
 import sm.central.repository.student.IStudentRepo;
 import sm.central.repository.student.IStudentUserPass;
+import java.time.LocalDate;
 
 @Service
 public class StudentServiceImpl implements IStudentService {
 	@Autowired
 	private IStudentRepo stuRepo;
 	@Autowired
-	INotesRepository noteRepo;
+	private INotesRepository noteRepo;
 	@Autowired
-	TimetableRepository timeRepo;
+	private TimetableRepository timeRepo;
 	@Autowired
 	private IAssigment assignmentRepo;
 	@Autowired
@@ -50,7 +53,8 @@ public class StudentServiceImpl implements IStudentService {
 	private ObjectMapper objectMapper;
 	@Autowired
 	private IStudentResultRepo studentResultRepo;
-
+	@Autowired
+	private IAttendanceRepo attendanceRepo;
 	@Autowired
 	private IFeesRepo feesRepo;
 	@Override
@@ -180,5 +184,34 @@ public class StudentServiceImpl implements IStudentService {
 		return studentResultRepo.findResultsByStudentId(studentId);
 
 	}
+	public AttendanceSummary getAttendanceSummary(String studentId) {
+		// Get the earliest attendance date as start date
+		LocalDate startDate = attendanceRepo.findEarliestDate();
+		if (startDate == null) {
+			return new AttendanceSummary(0, 0, 0.0); // No attendance records
+		}
+
+		// Use current date as end date
+		LocalDate endDate = LocalDate.now(); // July 12, 2025
+
+		// Ensure endDate is not before startDate
+		if (endDate.isBefore(startDate)) {
+			throw new IllegalArgumentException("Current date cannot be before the earliest attendance date");
+		}
+
+		// Count total school days (distinct dates)
+		long totalSchoolDays = attendanceRepo.countDistinctSchoolDays(startDate, endDate);
+
+		// Count present days for the student
+		long presentDays = attendanceRepo.countPresentDays(studentId, startDate, endDate);
+
+		// Calculate attendance percentage
+		double attendancePercentage = totalSchoolDays > 0 ?
+				((double) presentDays / totalSchoolDays) * 100 : 0.0;
+
+		return new AttendanceSummary(totalSchoolDays, presentDays, attendancePercentage);
+	}
+
+	// DTO to hold summary data
 
 }

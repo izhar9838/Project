@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import sm.central.dto.student.AssignmentDTO;
+import sm.central.dto.student.AttendanceSummary;
 import sm.central.dto.student.SubmitAssignDto;
 import sm.central.model.content.Notes;
 import sm.central.model.content.Timetable;
@@ -65,5 +66,11 @@ public class StudentController {
 		List<Object> results=stuService.getResults(studentId);
 		System.out.println(results.toString());
 		return new ResponseEntity<>(results,HttpStatus.OK);
+	}
+	@GetMapping(path = "/getAttendance",produces = "application/json")
+	public ResponseEntity<?> getAttendanceSummary(@RequestParam String studentId){
+		AttendanceSummary attendanceSummary=stuService.getAttendanceSummary(studentId);
+		System.out.println(attendanceSummary);
+		return new ResponseEntity<>(attendanceSummary,HttpStatus.OK);
 	}
 }
