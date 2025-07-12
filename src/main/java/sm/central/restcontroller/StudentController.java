@@ -70,7 +70,6 @@ public class StudentController {
 	@GetMapping(path = "/getAttendance",produces = "application/json")
 	public ResponseEntity<?> getAttendanceSummary(@RequestParam String studentId){
 		AttendanceSummary attendanceSummary=stuService.getAttendanceSummary(studentId);
-		System.out.println(attendanceSummary);
 		return new ResponseEntity<>(attendanceSummary,HttpStatus.OK);
 	}
 }
